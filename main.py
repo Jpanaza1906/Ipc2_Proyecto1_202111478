@@ -125,6 +125,7 @@ def crearnodos(matrix,n,p):
             else:
                 celula = Celula(matrix[i][j],matrix[i-1][j-1],matrix[i-1][j],matrix[i-1][j+1],matrix[i][j-1],matrix[i][j+1],matrix[i+1][j-1],matrix[i+1][j],matrix[i+1][j+1])
             celulas[i][j] = celula
+    rejillas.append(matrix)
     print("se crearon los nodos")     
     linea = ""   
     for i in range(0,n):
@@ -145,9 +146,15 @@ def crearnodos(matrix,n,p):
 #FUNCION PARA VER EL DESARROLLO DE LAS CELULAS
 def desarrollo(n,p):
     global rejillas
-    rejillas.append(celulas)
+    global celulas
     pasopaso = True
-    cont = 0
+    np = 1
+    tenfermedad = ""
+    Nperiodo0 = 0 #numero de periodo en donde se encuentra el patrón a repetir
+    Nperiodo1 = 0 #cada cuanto se repite el periodo encontrado
+    posiciones = []
+    cont = 0    
+    incurable = False
     for h in range(0,p):
         mtemp = celulas
         for i in range(0,n):
@@ -199,8 +206,43 @@ def desarrollo(n,p):
                     else:
                         celulas[i][j].valor = 0
                     cont = 0
-        rejillas.append(celulas)        
-        imprimircelulas(n,h)
+        #VER SI LA ENFERMEDAD ES INCURABLE QUE SE REPITE DESPUES DE SU PRIMER PERIODO  
+        if(np == 1):
+            repetidatotal = True                                
+            for i in range(0,n):
+                for j in range(0,n):
+                    mtemporal = rejillas[0]
+                    if(mtemporal[i][j] != celulas[i][j].valor):
+                        repetidatotal = False
+            if(repetidatotal):
+                tenfermedad = " Incurable"
+                incurable = True                                   
+        if(incurable == False):
+        #ver el tipo de enfermedad
+            cont = 0
+            diferentes = False
+            for nmatrix in rejillas:
+                for i in range(0,n):
+                    for j in range(0,n):
+                        if(nmatrix[i][j] != celulas[i][j].valor):
+                            diferentes = True
+                if(diferentes == False):                    
+                    Nperiodo0 = (h+1)
+                    posiciones.append(cont)                                
+            #Analizar el tipo de enfermedad
+            cont = cont + 1
+            Nperiodo1 = posiciones[len(posiciones)-1] - posiciones[len(posiciones)-2]
+            if(Nperiodo1 == 1):
+                tenfermedad = " Incurable"
+            else:
+                tenfermedad = " Grave"
+        #CARGAR LA MATRIZ PARA GUARDAR EL REGISTRO        
+        for i in range(0,n):
+            for j in range(0,n):
+                matrix[i][j] = celulas[i][j].valor
+        rejillas.append(matrix)            
+        np = np + 1
+        imprimircelulas(n,h,tenfermedad,Nperiodo0,Nperiodo1)
         if(pasopaso):
             flag = True
             while(flag):
@@ -213,10 +255,14 @@ def desarrollo(n,p):
         else:                    
             time.sleep(0.5)
 #FUNCION PARA IMPRIMIR LAS REGILLAS
-def imprimircelulas(n, h):
+def imprimircelulas(n, h, tp,n0,n1):
     print("*********************************************************")
     print("                       PERIODO: " + str(h+1))
-    print("                                                         ")
+    print("Tipo de enfermedad:"+ tp)
+    if(n0 > 0 and n1 > 0):
+        print("Primera repetición en el periodo"+ tp)
+        print("Se repite cada "+ tp + " periodos")
+        print("")
     linea = ""   
     for i in range(0,n):
         for j in range(0,n):
