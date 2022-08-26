@@ -4,7 +4,7 @@ Carné: 202111478
 Programación Orientada a Objetos
 Introducción a la programación 2
 """
-import sys
+
 from tkinter import messagebox
 from tkinter import filedialog as fd
 from tkinter import *
@@ -145,8 +145,6 @@ def crearnodos(matrix,n,p):
             tejidover = False
 #FUNCION PARA VER EL DESARROLLO DE LAS CELULAS
 def desarrollo(n,p):
-    global rejillas
-    global celulas
     pasopaso = True
     np = 1
     tenfermedad = ""
@@ -219,28 +217,34 @@ def desarrollo(n,p):
                 incurable = True                                   
         if(incurable == False):
         #ver el tipo de enfermedad
-            cont = 0
-            diferentes = False
-            for nmatrix in rejillas:
+            conti = 0
+            for nmatrix in rejillas:                
+                diferentes = False
                 for i in range(0,n):
                     for j in range(0,n):
                         if(nmatrix[i][j] != celulas[i][j].valor):
                             diferentes = True
-                if(diferentes == False):                    
-                    Nperiodo0 = (h+1)
-                    posiciones.append(cont)                                
-            #Analizar el tipo de enfermedad
-            cont = cont + 1
-            Nperiodo1 = posiciones[len(posiciones)-1] - posiciones[len(posiciones)-2]
-            if(Nperiodo1 == 1):
-                tenfermedad = " Incurable"
-            else:
-                tenfermedad = " Grave"
-        #CARGAR LA MATRIZ PARA GUARDAR EL REGISTRO        
+                if(diferentes == False): 
+                    posiciones.append(conti)
+                    if(Nperiodo0 == 0):
+                        Nperiodo0 = np
+                                                 
+                    #Analizar el tipo de enfermedad
+                conti = conti + 1
+            if(len(posiciones) >= 2):
+                Nperiodo1 = posiciones[len(posiciones)-1] - posiciones[len(posiciones)-2]
+                if(Nperiodo1 == 1):
+                    tenfermedad = " Incurable"
+                else:
+                    tenfermedad = " Grave"
+        #CARGAR LA MATRIZ PARA GUARDAR EL REGISTRO    
+        matriztemp =  [[0 for _ in range(n)] for _ in range(n)] 
         for i in range(0,n):
             for j in range(0,n):
-                matrix[i][j] = celulas[i][j].valor
-        rejillas.append(matrix)            
+                matriztemp[i][j] = celulas[i][j].valor
+        
+        rejillas.append(matriztemp)
+        conectarnodos(n,matriztemp)            
         np = np + 1
         imprimircelulas(n,h,tenfermedad,Nperiodo0,Nperiodo1)
         if(pasopaso):
@@ -254,14 +258,100 @@ def desarrollo(n,p):
                     flag = False
         else:                    
             time.sleep(0.5)
+            
+#FUNCION PARA CONECTAR LOS NODOS
+def conectarnodos(n,matrix):
+    for i in range(0,n):
+        for j in range(0,n):
+            if(i == 0 and j == 0):
+                celulas[i][j].sigUL = None
+                celulas[i][j].sigU = None
+                celulas[i][j].sigUR = None
+                celulas[i][j].sigL = None
+                celulas[i][j].sigR = matrix[i][j+1]
+                celulas[i][j].sigDL = None
+                celulas[i][j].sigD = matrix[i+1][j]
+                celulas[i][j].sigDR = matrix[i+1][j+1]
+            elif(i == 0 and j == (n-1)):
+                celulas[i][j].sigUL = None
+                celulas[i][j].sigU = None
+                celulas[i][j].sigUR = None
+                celulas[i][j].sigL = matrix[i][j-1]
+                celulas[i][j].sigR = None
+                celulas[i][j].sigDL = matrix[i+1][j-1]
+                celulas[i][j].sigD = matrix[i+1][j]
+                celulas[i][j].sigDR = None                
+            elif(i == (n-1) and j == 0):
+                celulas[i][j].sigUL = None
+                celulas[i][j].sigU = matrix[i-1][j]
+                celulas[i][j].sigUR = matrix[i-1][j+1]
+                celulas[i][j].sigL = None
+                celulas[i][j].sigR = matrix[i][j+1]
+                celulas[i][j].sigDL = None
+                celulas[i][j].sigD = None
+                celulas[i][j].sigDR = None                 
+            elif(i == (n-1) and j == (n-1)):
+                celulas[i][j].sigUL = matrix[i-1][j-1]
+                celulas[i][j].sigU = matrix[i-1][j]
+                celulas[i][j].sigUR = None
+                celulas[i][j].sigL = matrix[i][j-1]
+                celulas[i][j].sigR = None
+                celulas[i][j].sigDL = None
+                celulas[i][j].sigD = None
+                celulas[i][j].sigDR = None                
+            elif(i == 0):
+                celulas[i][j].sigUL = None
+                celulas[i][j].sigU = None
+                celulas[i][j].sigUR = None
+                celulas[i][j].sigL = matrix[i][j-1]
+                celulas[i][j].sigR = matrix[i][j+1]
+                celulas[i][j].sigDL = matrix[i+1][j-1]
+                celulas[i][j].sigD = matrix[i+1][j]
+                celulas[i][j].sigDR = matrix[i+1][j+1] 
+            elif(i == (n-1)):
+                celulas[i][j].sigUL = matrix[i-1][j-1]
+                celulas[i][j].sigU = matrix[i-1][j]
+                celulas[i][j].sigUR = matrix[i-1][j+1]
+                celulas[i][j].sigL = matrix[i][j-1]
+                celulas[i][j].sigR = matrix[i][j+1]
+                celulas[i][j].sigDL = None
+                celulas[i][j].sigD = None
+                celulas[i][j].sigDR = None
+            elif(j == 0):
+                celulas[i][j].sigUL = None
+                celulas[i][j].sigU = matrix[i-1][j]
+                celulas[i][j].sigUR = matrix[i-1][j+1]
+                celulas[i][j].sigL = None
+                celulas[i][j].sigR = matrix[i][j+1]
+                celulas[i][j].sigDL = None
+                celulas[i][j].sigD = matrix[i+1][j]
+                celulas[i][j].sigDR = matrix[i+1][j+1] 
+            elif(j == (n-1)):
+                celulas[i][j].sigUL = matrix[i-1][j-1]
+                celulas[i][j].sigU = matrix[i-1][j]
+                celulas[i][j].sigUR = None
+                celulas[i][j].sigL = matrix[i][j-1]
+                celulas[i][j].sigR = None
+                celulas[i][j].sigDL = matrix[i+1][j-1]
+                celulas[i][j].sigD = matrix[i+1][j]
+                celulas[i][j].sigDR = None
+            else:
+                celulas[i][j].sigUL = matrix[i-1][j-1]
+                celulas[i][j].sigU = matrix[i-1][j]
+                celulas[i][j].sigUR = matrix[i-1][j+1]
+                celulas[i][j].sigL = matrix[i][j-1]
+                celulas[i][j].sigR = matrix[i][j+1]
+                celulas[i][j].sigDL = matrix[i+1][j-1]
+                celulas[i][j].sigD = matrix[i+1][j]
+                celulas[i][j].sigDR = matrix[i+1][j+1] 
 #FUNCION PARA IMPRIMIR LAS REGILLAS
 def imprimircelulas(n, h, tp,n0,n1):
     print("*********************************************************")
     print("                       PERIODO: " + str(h+1))
-    print("Tipo de enfermedad:"+ tp)
-    if(n0 > 0 and n1 > 0):
-        print("Primera repetición en el periodo"+ tp)
-        print("Se repite cada "+ tp + " periodos")
+    print("Tipo de enfermedad:"+ tp)    
+    print("Primera repetición en el periodo "+ str(n0))
+    if(n1 > 0):
+        print("Se repite cada "+ str(n1) + " periodos")
         print("")
     linea = ""   
     for i in range(0,n):
