@@ -163,7 +163,7 @@ def crearnodos(matrix,n,p,paciente):
 def desarrollo(n,p):
     pasopaso = True
     np = 1
-    tenfermedad = "Indefinido"
+    tenfermedad = "Leve"
     Nperiodo0 = 0 #numero de periodo en donde se encuentra el patrón a repetir
     Nperiodo1 = 0 #cada cuanto se repite el periodo encontrado
     posiciones = []
