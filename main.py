@@ -6,6 +6,7 @@ Introducción a la programación 2
 
 """
 
+import os
 from tkinter import messagebox
 from tkinter import filedialog as fd
 from tkinter import *
@@ -18,6 +19,8 @@ ejecucion = True
 matrix = []
 celulas = []
 rejillas = []
+rejillaimprimir = []
+datos = ['','','']
 #FUNCION MENU
 def menu():
     global buscarpaciente 
@@ -93,17 +96,17 @@ def analizar_paciente(pacienteselected, doc):
                         f = int(celda.getAttribute("f"))
                         c = int(celda.getAttribute("c"))
                         matrix[f][c] = 1
-                    crearnodos(matrix,n,p)
+                    crearnodos(matrix,n,p,pacienteselected)
                 except:
                     messagebox.showwarning("Advertencia", "El número de celda se sale del límite indicado")
-                print("si se puede")
+                
             else:
                 messagebox.showwarning("Advertencia", "El paciente archivo no cuenta con un número válido de columnas y filas o excedió el numero de células o periodos")
                 
     if(pacienteencontrado == False):
         messagebox.showwarning("Advertencia", "El paciente no ha sido encontrado")
 #SE CREAN LOS NODOS Y SE CONCECTAN A SUS VALORES
-def crearnodos(matrix,n,p):
+def crearnodos(matrix,n,p,paciente):
     #se crean y se conectan los nodos
     for i in range(0,n):
         for j in range(0,n):
@@ -139,16 +142,28 @@ def crearnodos(matrix,n,p):
     print(linea)
     tejidover = True
     while(tejidover):
+        global datos
         resp = input("Desea ver como se desarrolla el tejido, responda S/N: ")
         if(resp.upper() == "S"):
-            desarrollo(n,p)
+            r = desarrollo(n,p)   
+            resp2 = input("Para exportar los datos del paciente presione 1: ")
+            if(resp2 == "1" or r == 1):
+                reportes(paciente, datos[0],datos[1],datos[2])                
+                rejillas.clear()
+                celulas.clear()
+                matrix.clear()  
+                break
+            rejillas.clear()
+            celulas.clear()
+            matrix.clear() 
+            break
         elif(resp.upper() == "N"):
             tejidover = False
 #FUNCION PARA VER EL DESARROLLO DE LAS CELULAS
 def desarrollo(n,p):
     pasopaso = True
     np = 1
-    tenfermedad = ""
+    tenfermedad = "Indefinido"
     Nperiodo0 = 0 #numero de periodo en donde se encuentra el patrón a repetir
     Nperiodo1 = 0 #cada cuanto se repite el periodo encontrado
     posiciones = []
@@ -177,7 +192,7 @@ def desarrollo(n,p):
                     if(mtemp[i][j].sigDR == 1):
                         cont = cont + 1
                     # SE ACTUALIZAN LAS CELULAS A LA MATRIZ DE NODOS
-                    if(cont >= 2):
+                    if(cont == 2 or cont == 3):
                         celulas[i][j].valor = 1
                     else:
                         celulas[i][j].valor = 0
@@ -200,7 +215,7 @@ def desarrollo(n,p):
                     if(mtemp[i][j].sigDR == 1):
                         cont = cont + 1
                     # SE ACTUALIZAN LAS CELULAS A LA MATRIZ DE NODOS
-                    if(cont >= 3):
+                    if(cont == 3):
                         celulas[i][j].valor = 1
                     else:
                         celulas[i][j].valor = 0
@@ -248,15 +263,24 @@ def desarrollo(n,p):
         conectarnodos(n,matriztemp)            
         np = np + 1
         imprimircelulas(n,h,tenfermedad,Nperiodo0,Nperiodo1)
+        global datos
+        datos[0] = str(tenfermedad)
+        datos[1] = str(Nperiodo0)       
+        datos[2] = str(Nperiodo1)
+        global rejillaimprimir
+        rejillaimprimir = matriztemp
         if(pasopaso):
             flag = True
             while(flag):
-                resp = input("introduzca 1 para el siguiente periodo, si desea ejecutar todos los periodos introduzca 2: ")
+                resp = input("introduzca 1 para el siguiente periodo, si desea ejecutar todos los periodos introduzca 2, si desea finalizar presione 3: ")
                 if(resp == "2"):
                     pasopaso = False
                     flag = False
                 elif(resp == "1"):
                     flag = False
+                elif(resp == "3"):
+                    return 1
+                    
         else:                    
             time.sleep(0.5)
             
@@ -363,6 +387,30 @@ def imprimircelulas(n, h, tp,n0,n1):
                 linea = linea + "■"
         linea = linea + "\n"
     print(linea)
+def reportes(paciente,tipo, primerp, cadap):
+    global rejillaimprimir
+    n = len(rejillaimprimir)
+    label = ""
+    label += "digraph G {\n\n edge [fontname=\"Helvetica,Arial,san-serif\"]\n"
+    label += "label=<\n<TABLE > \n"
+    for i in range(0,n):
+        label += "<TR>"
+        for j in range(0,n):
+            label += "<TD>"
+            if(rejillaimprimir[i][j] == 0):
+                label += "□"
+            else:
+                label += "■"
+            label += "</TD>\n"
+        label += "</TR>\n\n"
+    label += "</TABLE>>;"
+    label +="\"paciente: "+ paciente +"\n Tipo: "+ tipo +"\n Primera repeticion en: "+ primerp +"\n Se repite cada: "+ cadap +"\"\n\n}"
+    nfile = "reporte_" + paciente
+    f = open(nfile+".txt", 'w', encoding='utf-8')
+    f.write(str(label))
+    f.close()
+    print("Reporte hecho!")
+    os.system("dot -Tpdf "+ nfile +".txt -o "+ nfile +".pdf")
 #LO QUE SE EJECUTA AL INICIO
 while(ejecucion):
     menu()
